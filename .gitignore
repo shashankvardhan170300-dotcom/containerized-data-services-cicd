@@ -1,0 +1,23 @@
+# .gitignore — Containerized Data Services & CI/CD
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Local data (SQLite demo database)
+*.db
+*.db-journal
+data/
+
+# Docker / local dev
+.env
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

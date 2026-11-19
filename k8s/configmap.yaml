@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: data-service-config
+  namespace: data-services
+  labels:
+    app: data-service
+data:
+  SERVICE_NAME: "data-service"
+  SERVICE_VERSION: "0.1.0"
+  PORT: "8000"
+  # Connection-pool tuning knobs (see src/service/config.py).
+  # These are starting values for a demo; tune against real load.
+  POOL_SIZE: "5"
+  POOL_TIMEOUT: "5.0"
+  POOL_MAX_OVERFLOW: "10"
+  MAX_INGEST_PAYLOAD_KB: "256"

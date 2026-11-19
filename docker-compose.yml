@@ -1,0 +1,61 @@
+# Local development stack.
+#
+# `api` is the data service. It persists to SQLite (volume `api-data`)
+# so the demo runs with no external database.
+#
+# `db` is a Postgres 16 container provided for local development and
+# experimentation. The demo service does not use it yet: point the
+# service at it by setting DATABASE_URL once a Postgres adapter is
+# added (see README, "Databases"). It is kept here because a real
+# local-dev setup ships the database next to the service.
+#
+# Usage:
+#   docker compose up --build        # start api (+ db)
+#   docker compose down -v           # stop and remove volumes
+
+services:
+  api:
+    build: .
+    container_name: data-service-api
+    ports:
+      - "8000:8000"
+    environment:
+      SERVICE_NAME: data-service
+      SERVICE_VERSION: "0.1.0"
+      DB_PATH: /app/data/data.db
+      # Pool tuning knobs (see src/service/config.py).
+      POOL_SIZE: "5"
+      POOL_TIMEOUT: "5.0"
+      POOL_MAX_OVERFLOW: "10"
+    volumes:
+      - api-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres:16-alpine
+    container_name: data-service-db
+    environment:
+      POSTGRES_USER: dataservice
+      POSTGRES_PASSWORD: dataservice-local-only
+      POSTGRES_DB: dataservice
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dataservice -d dataservice"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  api-data:
+  pg-data:
